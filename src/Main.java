@@ -1,64 +1,131 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 public class Main {
+
+    // TODO should it generate fractions? otherwise what's the point of having a double?
+
+    // Max number of generated expressions
+    private static final int MAX_NUM_OF_EXPRESSIONS = 10;
+
+    // Max number of generated operands
+    private static final int MAX_NUM_OF_OPERANDS = 4;
+
+    // Max value an atomic expression can have
+    private static final int MAX_RANDOM_VALUE = 9;
+
+    // Number of random operators
+    private static final int RANDOM_OPERATORS = 2;
 
     public static void main(String[] args) {
 
         // Holds a list of random expressions
         List<Expression> expressions = new ArrayList<>();
 
-        // Holds a hash of expression results with a mapping to their expressions
-        Map<Double, List<Expression>> resultsToExpressions = new HashMap<>();
-
+        // Choose the number of generated expressions
         Random random = new Random();
-        int numOfExpressions = random.nextInt(10) + 1;
+        int numOfExpressions = random.nextInt(MAX_NUM_OF_EXPRESSIONS) + 1;
 
-        for (int i = 0; i < numOfExpressions; i++) {
-            Expression newExpression = generateExpression(random);
-            double expressionResult = newExpression.calculate();
+        // Fill the list with random expressions
+        generateExpressions(expressions, random, numOfExpressions);
 
-            expressions.add(newExpression);
-            saveExpression(resultsToExpressions, expressionResult, newExpression);
+        // Print the expressions
+        printExpressions(expressions);
+    }
+
+    /**
+     * Prints the given expressions with their results and equal expressions.
+     *
+     * @param expressions expressions to print
+     */
+    private static void printExpressions(List<Expression> expressions) {
+        for (int i = 0; i < expressions.size(); i++) {
+            double expressionResult = expressions.get(i).calculate();
+            System.out.println(String.format("Expression: %s\nResult:%s", expressions.get(i), expressionResult));
+            printEqualExpressions(i, expressions);
+            System.out.println();
         }
     }
 
     /**
-     * Saves a new expression and its corresponding result to a hash.
-     * @param resultsToExpressions hash containing a mapping between expression results and their expressions
-     * @param result expression result
-     * @param expression expression
+     * Goes over the given expressions and looks for an equal expression to the given one's index.
+     *
+     * @param expressionIndex expression index to compare other to
+     * @param expressions     expressions to search through
      */
-    private static void saveExpression(Map<Double, List<Expression>> resultsToExpressions,
-                                      Double result, Expression expression) {
-        if (!resultsToExpressions.containsKey(result)) {
-            List<Expression> newList = new ArrayList<>();
-            newList.add(expression);
-            resultsToExpressions.put(result, newList);
+    private static void printEqualExpressions(int expressionIndex, List<Expression> expressions) {
+        Expression expression = expressions.get(expressionIndex);
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("Equal expressions: [ ");
+        for (int i = 0; i < expressions.size(); i++) {
+
+            if (i != expressionIndex && expressions.get(i).equals(expression)) {
+                stringBuilder.append(String.format(" %s,", expressions.get(i)));
+            }
         }
-        else {
-            List<Expression> existingList = resultsToExpressions.get(result);
-            existingList.add(expression);
+        stringBuilder.setLength(stringBuilder.length() - 1);
+        stringBuilder.append(" ]");
+        System.out.println(stringBuilder.toString());
+    }
+
+    /**
+     * Generates random expressions into the given list.
+     *
+     * @param expressions      list to fill with expressions
+     * @param random           random generator
+     * @param numOfExpressions number of expressions to generate
+     */
+    private static void generateExpressions(List<Expression> expressions,
+                                            Random random, int numOfExpressions) {
+        for (int i = 0; i < numOfExpressions; i++) {
+            Expression newExpression = generateExpression(random);
+            expressions.add(newExpression);
         }
     }
 
     /**
      * Generates a random expression.
+     *
      * @param random random values generator
      * @return random expression
      */
     private static Expression generateExpression(Random random) {
-        int numOfOperands = random.nextInt(4) + 1;
-        int operator;
+        Expression atomicExpression = new AtomicExpression(random.nextInt(MAX_RANDOM_VALUE) + 1);
+        CompoundExpression compoundExpression = null;
+        int numOfOperands = random.nextInt(MAX_NUM_OF_OPERANDS) + 2;
+        int value;
 
-        for (int i = 0; i < numOfOperands; i++) {
-            operator = random.nextInt(2);
+        for (int i = 0; i < numOfOperands - 1; i++) {
+            value = random.nextInt(MAX_RANDOM_VALUE) + 1;
 
+            if (compoundExpression == null) {
+                compoundExpression = createCompoundExpression(atomicExpression,
+                        new AtomicExpression(value), random);
+            } else {
+                compoundExpression = createCompoundExpression(compoundExpression, new AtomicExpression(value),
+                        random);
+            }
         }
 
-        return null;
+        return compoundExpression;
+    }
+
+    /**
+     * Creates a random compound expression.
+     *
+     * @param leftExpression  left expression of the compound expression
+     * @param rightExpression right expression of the compound expression
+     * @param random          random generator
+     * @return random compound expression
+     */
+    private static CompoundExpression createCompoundExpression(Expression leftExpression, Expression rightExpression, Random random) {
+        int operator = random.nextInt(RANDOM_OPERATORS);
+
+        if (operator == 0) {
+            return new AdditionExpression(leftExpression, rightExpression);
+        }
+        return new SubtractionExpression(leftExpression, rightExpression);
     }
 }

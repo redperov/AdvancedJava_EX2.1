@@ -5,6 +5,11 @@ public class SubtractionExpression extends CompoundExpression {
     }
 
     @Override
+    public double calculate() {
+        return this.leftExpression.calculate() - this.rightExpression.calculate();
+    }
+
+    @Override
     public String toString() {
         return String.format("%s - %s", this.leftExpression, this.rightExpression);
     }

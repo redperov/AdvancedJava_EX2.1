@@ -1,5 +1,10 @@
 public abstract class Expression {
 
+    /**
+     * Calculates the value of the expression.
+     *
+     * @return expression result
+     */
     public abstract double calculate();
 
     @Override

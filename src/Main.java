@@ -7,7 +7,7 @@ public class Main {
     // TODO should it generate fractions? otherwise what's the point of having a double?
 
     // Max number of generated expressions
-    private static final int MAX_NUM_OF_EXPRESSIONS = 10;
+    private static final int MAX_NUM_OF_EXPRESSIONS = 100;
 
     // Max number of generated operands
     private static final int MAX_NUM_OF_OPERANDS = 4;
@@ -17,6 +17,9 @@ public class Main {
 
     // Number of random operators
     private static final int RANDOM_OPERATORS = 2;
+
+    // Value used to divide a number to get a fraction
+    private static final int FRACTION_DIVIDER = 10;
 
     public static void main(String[] args) {
 
@@ -42,7 +45,7 @@ public class Main {
     private static void printExpressions(List<Expression> expressions) {
         for (int i = 0; i < expressions.size(); i++) {
             double expressionResult = expressions.get(i).calculate();
-            System.out.println(String.format("Expression: %s\nResult:%s", expressions.get(i), expressionResult));
+            System.out.println(String.format("Expression: %s\nResult: %s", expressions.get(i), expressionResult));
             printEqualExpressions(i, expressions);
             System.out.println();
         }
@@ -59,6 +62,7 @@ public class Main {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("Equal expressions: [ ");
+
         for (int i = 0; i < expressions.size(); i++) {
 
             if (i != expressionIndex && expressions.get(i).equals(expression)) {
@@ -92,16 +96,16 @@ public class Main {
      * @return random expression
      */
     private static Expression generateExpression(Random random) {
-        Expression atomicExpression = new AtomicExpression(random.nextInt(MAX_RANDOM_VALUE) + 1);
+        Expression initialExpression = new AtomicExpression(random.nextInt(MAX_RANDOM_VALUE) + 1);
         CompoundExpression compoundExpression = null;
         int numOfOperands = random.nextInt(MAX_NUM_OF_OPERANDS) + 2;
-        int value;
+        double value;
 
         for (int i = 0; i < numOfOperands - 1; i++) {
-            value = random.nextInt(MAX_RANDOM_VALUE) + 1;
+            value = generateRandomValue(random);
 
             if (compoundExpression == null) {
-                compoundExpression = createCompoundExpression(atomicExpression,
+                compoundExpression = createCompoundExpression(initialExpression,
                         new AtomicExpression(value), random);
             } else {
                 compoundExpression = createCompoundExpression(compoundExpression, new AtomicExpression(value),
@@ -110,6 +114,19 @@ public class Main {
         }
 
         return compoundExpression;
+    }
+
+    /**
+     * Generates a random value with up to two decimal numbers.
+     *
+     * @param random random generator
+     * @return random value
+     */
+    private static double generateRandomValue(Random random) {
+        double number = random.nextInt(MAX_RANDOM_VALUE) + 1;
+        double fraction = (double) random.nextInt(MAX_RANDOM_VALUE + 1) / FRACTION_DIVIDER;
+
+        return number + fraction;
     }
 
     /**
